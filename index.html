@@ -277,6 +277,13 @@ body.notone .pyc .t1, body.notone .pyc .t2, body.notone .pyc .t3, body.notone .p
 /* after answering, keep the right and the picked option readable; fade the rest */
 .tile.opt[disabled] { opacity: .5; }
 .tile.opt.ok[disabled], .tile.opt.no[disabled] { opacity: 1; }
+/* labelled play buttons: "Word" and "Sentence" */
+.saybtns { gap: 6px; margin-top: 4px; }
+.saybtn { display: inline-flex; align-items: center; gap: 6px; }
+.saybtn svg { width: 17px; height: 17px; flex: none; }
+.fb .saybtn, .fb .slowbtn { color: var(--fg); }
+.flash .zh { font-family: var(--hz); font-weight: 700; font-size: clamp(2.6rem, 10vw, 3.6rem); line-height: 1.1; }
+.flash .ex .saybtns { justify-content: flex-start; }
 
 </style>
 <header class="top"><div class="wrap">
@@ -362,6 +369,9 @@ var IC = {
   gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/><\/svg>'
 };
 function spk(text, cls) { return '<button class="iconbtn ' + (cls || '') + '" data-audio data-act="say" data-t="' + esc(text) + '" aria-label="Play audio" title="Play audio">' + IC.spk + '<\/button>'; }
+/* labelled play buttons, so the word and the whole sentence each have their own */
+function sayBtn(text, label, cls) { return '<button class="btn sm saybtn ' + (cls || '') + '" data-audio data-act="say" data-t="' + esc(text) + '" title="Play ' + esc(label.toLowerCase()) + '">' + IC.spk + '<span>' + esc(label) + '<\/span><\/button>'; }
+function sentBtns(toks) { var t = toks.join(''); return '<span class="row saybtns">' + sayBtn(t, 'Sentence') + '<button class="btn sm slowbtn" data-audio data-act="say" data-slow="1" data-t="' + esc(t) + '" title="Play the sentence slowly">Slow<\/button><\/span>'; }
 function spks(text) { return '<span class="row" style="gap:6px;display:inline-flex">' + spk(text) + '<button class="btn sm slowbtn" data-audio data-act="say" data-slow="1" data-t="' + esc(text) + '" title="Play slowly">Slow<\/button><\/span>'; }
 
 /* ---------- saved progress ---------- */
@@ -684,7 +694,7 @@ function wordModal(id) {
     (kv ? '<dl class="kv">' + kv + '<\/dl>' : '') +
     (w.m.length ? '<div><h4 class="muted small">DICTIONARY SENSES<\/h4><ul style="margin:4px 0 0;padding-left:18px">' + w.m.map(function (m) { return '<li>' + esc(m) + '<\/li>'; }).join('') + '<\/ul><\/div>' : '') +
     (chars.length ? '<div><h4 class="muted small">CHARACTERS (TAP FOR STROKE ORDER)<\/h4><div class="row" style="margin-top:6px">' + chars.map(function (c) { return '<button class="tile sq" data-act="char" data-c="' + c + '">' + c + '<\/button>'; }).join('') + '<\/div><\/div>' : '') +
-    (ex.length ? '<div class="stack"><h4 class="muted small">EXAMPLES<\/h4>' + ex.map(function (e) { return '<div class="ex">' + sxHTML(e.w, e.py) + '<span class="muted">' + esc(e.en) + '<\/span><span>' + spk(e.w.join('')) + '<\/span><\/div>'; }).join('') + '<\/div>' : '') +
+    (ex.length ? '<div class="stack"><h4 class="muted small">EXAMPLES<\/h4>' + ex.map(function (e) { return '<div class="ex">' + sxHTML(e.w, e.py) + '<span class="muted">' + esc(e.en) + '<\/span>' + sentBtns(e.w) + '<\/div>'; }).join('') + '<\/div>' : '') +
     '<div class="row"><button class="btn primary" data-act="writeone" data-id="' + id + '">Practise writing<\/button><\/div>';
   openModal(html);
 }
@@ -999,7 +1009,7 @@ VW.sent = function (q) {
   var full = q.s.w.join('');
   return '<div class="q"><div class="prompt"><span class="sub">Say this in Chinese<\/span><div class="big">' + esc(q.s.en) + '<\/div><\/div>' +
     '<div class="answer ' + (done ? (ok ? 'ok' : 'no') : '') + '">' + (ans || '<span class="muted small">Tap blocks below to build the sentence<\/span>') + '<\/div>' +
-    (done ? fbBox(ok, (ok ? '' : '<div class="small">Answer:<\/div>') + sxHTML(q.s.w, q.s.py) + '<div>' + spk(full) + '<\/div>') + nextBtn() :
+    (done ? fbBox(ok, (ok ? '' : '<div class="small">Answer:<\/div>') + sxHTML(q.s.w, q.s.py) + sentBtns(q.s.w)) + nextBtn() :
       '<div class="bank">' + bank + '<\/div><div class="actions"><button class="btn" data-act="clear"' + (q.placed.length ? '' : ' disabled') + '>Clear<\/button>' +
       (S.diff === 'easy' ? '' : '<button class="btn" data-act="hint">' + (q.showPy ? 'Hide pinyin' : 'Show pinyin') + '<\/button>') +
       '<button class="btn primary" data-act="check"' + (q.placed.length ? '' : ' disabled') + '>Check<\/button><\/div>') + '<\/div>';
@@ -1034,7 +1044,7 @@ VW.fill = function (q) {
   var py = S.diff === 'easy' ? '<div class="sub">' + esc(q.s.py.map(function (p, i) { return i === q.bi && !done ? '___' : p; }).filter(Boolean).join(' ')) + '<\/div>' : '';
   var en = (S.diff === 'brutal') ? '' : (S.diff === 'easy' || q.showEn || done ? '<div class="sub">' + esc(q.s.en) + '<\/div>' : '<button class="btn sm" data-act="peek">Show English<\/button>');
   return '<div class="q"><div class="prompt"><span class="sub">Fill the blank<\/span><div class="sentence">' + parts + '<\/div>' + py + en + '<\/div>' + optsHTML(q, done) +
-    (done ? fbBox(ok, sxHTML(q.s.w, q.s.py) + '<div class="small">' + esc(q.s.en) + '<\/div>' + pickedNote(q) + '<div>' + spk(q.s.w.join('')) + '<\/div>') + nextBtn() : '') + '<\/div>';
+    (done ? fbBox(ok, sxHTML(q.s.w, q.s.py) + '<div class="small">' + esc(q.s.en) + '<\/div>' + pickedNote(q) + sentBtns(q.s.w)) + nextBtn() : '') + '<\/div>';
 };
 VW.listen = function (q) {
   var done = q.res !== null, ok = q.res === 'ok', it = q.item;
@@ -1074,7 +1084,7 @@ VW.intro = function (q) {
     '<div class="center"><div class="ipy pyc">' + pyHTML(w.p, w.py) + '<\/div><div class="ig">' + esc(w.g) + '<\/div>' + (w.pos.length ? '<div class="muted small">' + esc(w.pos.join(', ')) + '<\/div>' : '') + '<\/div>' +
     '<div class="row" style="justify-content:center">' + spks(w.h) + '<button class="btn sm" data-act="ianim">Show strokes again<\/button><\/div>' +
     tips + parts +
-    (ex ? '<div class="stack"><h4 class="muted small">IN A SENTENCE<\/h4><div class="ex">' + sxHTML(ex.w, ex.py) + '<span class="muted">' + esc(ex.en) + '<\/span><span>' + spk(ex.w.join('')) + '<\/span><\/div><\/div>' : '') +
+    (ex ? '<div class="stack"><h4 class="muted small">IN A SENTENCE<\/h4><div class="ex">' + sxHTML(ex.w, ex.py) + '<span class="muted">' + esc(ex.en) + '<\/span>' + sentBtns(ex.w) + '<\/div><\/div>' : '') +
     '<\/div>' + nextBtn('Got it, next') + '<\/div>';
 };
 VW.write = function (q) {
@@ -1090,13 +1100,13 @@ VW.write = function (q) {
       '<div class="actions">' + (S.diff !== 'brutal' && S.diff !== 'easy' && !q.hint ? '<button class="btn" data-act="hint">Show pinyin<\/button>' : '') + '<button class="btn" data-act="reveal">Show me<\/button><\/div>') + '<\/div>';
 };
 VW.cards = function (q) {
-  var w = q.w, front, back = wordInfo(w) + (w.m.length ? '<div class="small muted">' + esc(w.m[0]) + '<\/div>' : '');
+  var w = q.w, front, back = wordInfo(w) + '<div class="row saybtns" style="justify-content:center">' + sayBtn(w.h, 'Word') + '<button class="btn sm slowbtn" data-audio data-act="say" data-slow="1" data-t="' + esc(w.h) + '" title="Play the word slowly">Slow<\/button><\/div>' + (w.m.length ? '<div class="small muted">' + esc(w.m[0]) + '<\/div>' : '');
   var ex = examplesFor(w.h)[0];
-  if (ex) back += '<div class="ex" style="text-align:left;margin-top:8px">' + sxHTML(ex.w, ex.py) + '<span class="muted">' + esc(ex.en) + '<\/span><\/div>';
+  if (ex) back += '<div class="ex" style="text-align:left;margin-top:8px">' + sxHTML(ex.w, ex.py) + '<span class="muted">' + esc(ex.en) + '<\/span>' + sentBtns(ex.w) + '<\/div>';
   if (q.dir === 'zh2en') front = '<div class="zhbig">' + esc(w.h) + '<\/div><div class="muted">What does it mean?<\/div>';
   else if (q.dir === 'en2zh') front = '<div class="big" style="font-size:1.8rem;font-weight:700">' + esc(w.g) + '<\/div><div class="muted">Recall the hanzi, then flip.<\/div>';
   else front = '<div class="muted">Listen, then recall the word.<\/div><button class="btn primary" data-act="say" data-t="' + esc(w.h) + '">Play audio<\/button>';
-  return '<div class="q"><div class="card flash pop" data-act="flip">' + (q.flipped ? '<div class="stack" style="justify-items:center;width:100%">' + back + '<div>' + spk(w.h) + '<\/div><\/div>' : '<div class="stack" style="justify-items:center">' + front + '<\/div>') + '<\/div>' +
+  return '<div class="q"><div class="card flash pop" data-act="flip">' + (q.flipped ? '<div class="stack" style="justify-items:center;width:100%">' + back + '<\/div>' : '<div class="stack" style="justify-items:center">' + front + '<\/div>') + '<\/div>' +
     (q.flipped ? '<div class="actions"><button class="btn" data-act="cmiss">Missed it<\/button><button class="btn good" data-act="cknow">Got it<\/button><\/div>' : '<div class="actions"><button class="btn primary" data-act="flip">Flip card<\/button><\/div>') + '<\/div>';
 };
 var QNAME = { build: 'Build the word', choose: 'Choose', listen: 'Listen', write: 'Write it', tones: 'Tones', intro: 'New word', sent: 'Build the sentence', fill: 'Fill the blank', cards: 'Card' };
@@ -1196,7 +1206,7 @@ function viewGrammar() {
   var tabs = '<div class="seg"><button data-act="gtab" data-t="lessons" aria-pressed="' + (ui.gtab === 'lessons') + '">Lessons<\/button><button data-act="gtab" data-t="syllabus" aria-pressed="' + (ui.gtab === 'syllabus') + '">Official checklist<\/button><\/div>';
   if (ui.gram) {
     var g = GR.filter(function (x) { return x.id === ui.gram; })[0], done = !!P.gram[g.id];
-    var ex = g.ex.map(function (e) { return '<div class="ex">' + sxHTML(e.w, e.py) + '<span class="muted">' + esc(e.en) + '<\/span><span>' + spk(e.w.join('')) + '<\/span><\/div>'; }).join('');
+    var ex = g.ex.map(function (e) { return '<div class="ex">' + sxHTML(e.w, e.py) + '<span class="muted">' + esc(e.en) + '<\/span>' + sentBtns(e.w) + '<\/div>'; }).join('');
     return '<div class="view"><div class="row between"><button class="btn sm" data-act="gback">All lessons<\/button><button class="btn sm' + (done ? ' good' : '') + '" data-act="gdone" data-id="' + g.id + '">' + (done ? 'Marked as learned' : 'Mark as learned') + '<\/button><\/div>' +
       '<div><h2>' + esc(g.title) + '<\/h2><p class="muted hz" style="font-weight:500">' + esc(g.cn) + '<\/p><\/div>' +
       '<div class="rule">' + esc(g.rule) + '<\/div>' + g.body.map(function (b) { return '<p>' + esc(b) + '<\/p>'; }).join('') +

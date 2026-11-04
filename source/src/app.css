@@ -266,3 +266,10 @@ body.notone .pyc .t1, body.notone .pyc .t2, body.notone .pyc .t3, body.notone .p
 /* after answering, keep the right and the picked option readable; fade the rest */
 .tile.opt[disabled] { opacity: .5; }
 .tile.opt.ok[disabled], .tile.opt.no[disabled] { opacity: 1; }
+/* labelled play buttons: "Word" and "Sentence" */
+.saybtns { gap: 6px; margin-top: 4px; }
+.saybtn { display: inline-flex; align-items: center; gap: 6px; }
+.saybtn svg { width: 17px; height: 17px; flex: none; }
+.fb .saybtn, .fb .slowbtn { color: var(--fg); }
+.flash .zh { font-family: var(--hz); font-weight: 700; font-size: clamp(2.6rem, 10vw, 3.6rem); line-height: 1.1; }
+.flash .ex .saybtns { justify-content: flex-start; }

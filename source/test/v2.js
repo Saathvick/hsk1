@@ -153,6 +153,24 @@ function next() { const nb = $('#nextbtn'); if (nb) click(nb); }
   ok(H.markTone('hao', 3) === 'hǎo' && H.markTone('gui', 4) === 'guì' && H.markTone('liu', 2) === 'liú' && H.markTone('nü', 3) === 'nǚ' && H.markTone('zhou', 1) === 'zhōu', 'tone mark placement');
   ok(H.pyHTML('bù kèqì', ['bù', 'kè', 'qì']).includes('</span> <span'), 'pinyin colouring keeps spaces');
 
+  // 12b. flashcard back: separate Word and Sentence buttons that play different clips
+  H.startSession('cards', { n: 3, scope: 'all', dir: 'zh2en' });
+  let found = false;
+  for (let k = 0; k < 3 && !found; k++) {
+    click($('[data-act=flip]'));
+    const sb = $$('.saybtn').find(b => b.textContent === 'Sentence'), wb = $$('.saybtn').find(b => b.textContent === 'Word');
+    if (sb && wb) {
+      found = true; played.length = 0;
+      click(wb); click(sb);
+      ok(played.length === 2 && played[0] !== played[1], 'word and sentence play different clips');
+      ok(sb.getAttribute('data-t').length > wb.getAttribute('data-t').length, 'sentence button carries the whole sentence');
+    } else click($('[data-act=cknow]'));
+  }
+  ok(found, 'flashcard shows Word and Sentence buttons');
+  click($('[data-act=quit]'));
+  click($('.tab[data-t=grammar]')); click($$('.gl')[1]);
+  ok($$('.ex .saybtn').length === $$('.ex').length, 'every grammar example has a Sentence button');
+
   // 13. every old drill still runs at every difficulty for a few questions
   for (const m of ['build', 'sent', 'write', 'fill', 'choose', 'listen', 'cards', 'tones']) for (const diff of ['easy', 'hard', 'brutal']) {
     H.startSession(m, { diff, n: 4, scope: m === 'sent' || m === 'fill' ? 'all' : 'all' });
